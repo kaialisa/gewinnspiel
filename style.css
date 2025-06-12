@@ -181,6 +181,7 @@ h1 {
 @media (max-width: 768px) {
     html, body {
         overflow: auto;
+        max-height: 100vh;
     }
 }
 @media (min-width: 769px) {

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Crossword Grid Editor v3</title>
+    <link rel="stylesheet" href="grid-helper.css">
+
+</head>
+<body>
+<div class="wrapper">
+
+<h1>Crossword Builder</h1>
+
+<div>
+    Breite: <input id="width" type="number" value="21" min="1" max="40">
+    Höhe: <input id="height" type="number" value="27" min="1" max="40">
+    <button type="button" onclick="createGrid()">Grid erstellen</button>
+</div>
+
+<div id="grid"></div>
+
+<div>
+    Nummer: <input id="clueNumber" type="number" min="1">
+    Richtung: 
+    <select id="direction">
+        <option value="across">→</option>
+        <option value="down">↓</option>
+    </select>
+    Lösungsbuchstabe: <input id="solutionLetter" type="text" maxlength="1">
+    <button onclick="assignData()">Assign</button>
+</div>
+
+<div>
+    <button onclick="exportData()">Export Data</button>
+    <button onclick="clearStorage()">Clear Autosave</button>
+</div>
+
+<textarea id="exportArea" placeholder="Exported JSON will appear here"></textarea>
+<br>
+<textarea id="importArea" placeholder="Paste data here to import"></textarea>
+<button type="button" onclick="importData()">Import Data</button>
+
+<script>
+let gridData = {};
+
+function createGrid() {
+    const grid = document.getElementById('grid');
+    const width = parseInt(document.getElementById('width').value);
+    const height = parseInt(document.getElementById('height').value);
+    grid.style.gridTemplateColumns = `repeat(${width}, 40px)`;
+    grid.innerHTML = '';
+
+    if (!gridData.blocks || !gridData.numbers || !gridData.solutionMap) {
+        gridData = { width, height, blocks: [], numbers: {}, solutionMap: {} };
+    } else {
+        gridData.width = width;
+        gridData.height = height;
+    }
+
+    for (let row = 0; row < height; row++) {
+        for (let col = 0; col < width; col++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.row = row;
+            cell.dataset.col = col;
+
+            cell.addEventListener('click', () => toggleBlock(cell, row, col));
+            cell.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                toggleSelect(cell);
+            });
+
+            grid.appendChild(cell);
+        }
+    }
+    saveToStorage();
+}
+
+function toggleBlock(cell, row, col) {
+    if (cell.classList.contains('blocked')) {
+        cell.classList.remove('blocked');
+        gridData.blocks = gridData.blocks.filter(pos => !(pos[0] === row && pos[1] === col));
+    } else {
+        cell.classList.add('blocked');
+        gridData.blocks.push([row, col]);
+    }
+    updateLabels(cell, row, col);
+    saveToStorage();
+}
+
+function toggleSelect(cell) {
+    cell.classList.toggle('selected');
+}
+
+function assignData() {
+    const clueNumber = parseInt(document.getElementById('clueNumber').value);
+    const direction = document.getElementById('direction').value;
+    const solutionLetter = document.getElementById('solutionLetter').value.toUpperCase();
+
+    document.querySelectorAll('.cell.selected').forEach(cell => {
+        const row = parseInt(cell.dataset.row);
+        const col = parseInt(cell.dataset.col);
+
+        if (!gridData.numbers[`${row},${col}`]) {
+            gridData.numbers[`${row},${col}`] = {};
+        }
+
+        if (!isNaN(clueNumber)) {
+            gridData.numbers[`${row},${col}`][direction] = clueNumber;
+
+            if (!gridData.clues) gridData.clues = {};
+            if (!gridData.clues[direction]) gridData.clues[direction] = {};
+
+            const cells = [];
+            let r = row, c = col;
+            while (r < gridData.height && c < gridData.width) {
+                const isBlocked = gridData.blocks.some(([br, bc]) => br === r && bc === c);
+                if (isBlocked) break;
+                cells.push([r, c]);
+                if (direction === "across") c++;
+                else r++;
+            }
+
+            gridData.clues[direction][clueNumber] = { start: [row, col], cells };
+        }
+
+        if (solutionLetter) {
+            gridData.solutionMap[solutionLetter] = [row, col];
+        }
+
+        cell.classList.remove('selected');
+        updateLabels(cell, row, col);
+    });
+
+    saveToStorage();
+}
+
+
+function updateLabels(cell, row, col) {
+    cell.querySelector('.number')?.remove();
+    cell.querySelector('.solution')?.remove();
+
+    const num = gridData.numbers[`${row},${col}`];
+    if (num) {
+        const labelParts = [];
+        if (num.across !== undefined) labelParts.push(`${num.across} →`);
+        if (num.down !== undefined) labelParts.push(`${num.down} ↓`);
+        const label = labelParts.join('\n');
+
+        const numDiv = document.createElement('div');
+        numDiv.className = 'number';
+        numDiv.innerText = label;
+        cell.appendChild(numDiv);
+    }
+
+    for (const [letter, pos] of Object.entries(gridData.solutionMap)) {
+        if (pos[0] === row && pos[1] === col) {
+            const solDiv = document.createElement('div');
+            solDiv.className = 'solution';
+            solDiv.innerText = letter;
+            cell.appendChild(solDiv);
+        }
+    }
+}
+
+function exportData() {
+    document.getElementById('exportArea').value = JSON.stringify(gridData, null, 2);
+}
+
+function saveToStorage() {
+    localStorage.setItem('crosswordData', JSON.stringify(gridData));
+}
+
+function loadFromStorage() {
+    const data = localStorage.getItem('crosswordData');
+    if (data) {
+        gridData = JSON.parse(data);
+        loadGridFromData();
+    }
+}
+
+function clearStorage() {
+    localStorage.removeItem('crosswordData');
+    alert('Local storage cleared');
+}
+
+function importData() {
+    const imported = document.getElementById('importArea').value;
+    if (imported) {
+        gridData = JSON.parse(imported);
+        loadGridFromData();
+        saveToStorage();
+    }
+}
+
+function loadGridFromData() {
+    document.getElementById('width').value = gridData.width;
+    document.getElementById('height').value = gridData.height;
+
+    createGrid();
+
+    gridData.blocks.forEach(([row, col]) => {
+        const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+        if (cell) cell.classList.add('blocked');
+    });
+
+    for (const key in gridData.numbers) {
+        const [row, col] = key.split(',').map(Number);
+        const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+        if (cell) updateLabels(cell, row, col);
+    }
+
+    for (const letter in gridData.solutionMap) {
+        const [row, col] = gridData.solutionMap[letter];
+        const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+        if (cell) updateLabels(cell, row, col);
+    }
+}
+
+loadFromStorage();
+</script>
+
+
+<h1>Crossword Export Converter</h1>
+
+<p>Paste your exported helper data (raw JSON):</p>
+<textarea id="input"></textarea>
+<br><br>
+
+<button onclick="convert()">Convert to data.js format</button>
+
+<p>Copy this into your data.js file:</p>
+<textarea id="output"></textarea>
+
+<script>
+function convert() {
+  try {
+    const raw = JSON.parse(document.getElementById('input').value);
+    const wrapped = `const crossword = ${JSON.stringify(raw, null, 2)};`;
+    document.getElementById('output').value = wrapped;
+  } catch (e) {
+    alert("Invalid JSON input. Please paste valid exported data.");
+  }
+}
+</script>
+</div>
+</body>
+</html>

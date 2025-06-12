@@ -180,7 +180,6 @@ h1 {
 }
 @media (max-width: 768px) {
     html, body {
-        max-height: 100vh;
         overflow: auto;
     }
 }

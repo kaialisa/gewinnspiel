@@ -12,7 +12,6 @@ h1 {
     font-weight: 500;
     font-size: 32px;
     letter-spacing: 0.5px;
-    margin-top: 60px;
 }
 
 
@@ -93,9 +92,13 @@ h1 {
 }
 
 .clue-item:hover {
-    background-color: #cddff6;  /* muted blue hover */
+    background-color: #cddff6;
 }
 
+/* Active selected clue */
+.clue-item.active {
+    background-color: #a5c8f0;
+}
 
 /* Mobile rules */
 @media (max-width: 768px) {
@@ -159,18 +162,12 @@ h1 {
 }
 
 #active-clue-popup {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #fff;
-    border-top: 1px solid #ccc;
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
-    padding: 15px;
-    font-size: 18px;
-    font-weight: 500;
-    z-index: 999;
-    display: none;
+    font-size: 12px;
+    padding: 10px;
+    margin: 10px auto;
+    max-width: 1200px;
+    background: transparent;
+    border: 0px;
 }
 
 

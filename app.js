@@ -145,20 +145,26 @@ function buildSidebar() {
         const clueData = crossword.clues[clueRef.direction][clueRef.number];
         const clueText = clueData.text || `Clue ${clueRef.number}`;
         const fullText = `${clueRef.number}. ${clueText}`;
+// Desktop clue
+const clueElement = document.createElement('div');
+clueElement.classList.add('clue-item'); 
+clueElement.dataset.direction = clueRef.direction;  
+clueElement.dataset.number = clueRef.number;
 
-        // Desktop clue
-        const clueElement = document.createElement('div');
-        clueElement.innerText = fullText;
-        clueElement.style.marginBottom = '10px';
-        clueElement.style.cursor = 'pointer';
-        clueElement.addEventListener('click', () => {
-            selectedClue = clueRef;
-            highlightClueCells();
-            const [firstRow, firstCol] = clueData.cells[0];
-            const input = document.querySelector(`#puzzle input[data-row="${firstRow}"][data-col="${firstCol}"]`);
-            if (input) input.focus();
-        });
-        sidebar.appendChild(clueElement);
+clueElement.innerText = fullText;
+clueElement.style.marginBottom = '10px';
+clueElement.style.cursor = 'pointer';
+
+clueElement.addEventListener('click', () => {
+    selectedClue = clueRef;
+    highlightClueCells();
+    const [firstRow, firstCol] = clueData.cells[0];
+    const input = document.querySelector(`#puzzle input[data-row="${firstRow}"][data-col="${firstCol}"]`);
+    if (input) input.focus();
+});
+
+sidebar.appendChild(clueElement);
+
 
         // Mobile clue 
         const mobileClue = document.createElement('div');
@@ -550,8 +556,17 @@ function highlightClueCells() {
         if (wrapper) wrapper.classList.add('highlighted');
     });
 
+    // Update sidebar active state
+    document.querySelectorAll('#clue-sidebar .clue-item').forEach(item => item.classList.remove('active'));
+
+    const activeSidebarItem = document.querySelector(`#clue-sidebar .clue-item[data-direction="${selectedClue.direction}"][data-number="${selectedClue.number}"]`);
+    if (activeSidebarItem) {
+        activeSidebarItem.classList.add('active');
+    }
+
     updateActiveCluePopup();
 }
+
 
 function updateActiveCluePopup() {
     const popup = document.getElementById('active-clue-popup');

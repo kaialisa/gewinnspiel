@@ -181,9 +181,10 @@ h1 {
 @media (max-width: 768px) {
     html, body {
         overflow: auto;
-        max-height: 100vh;
+        max-height: 100dvh;
     }
 }
+
 @media (min-width: 769px) {
     #active-clue-popup {
         display: none !important;

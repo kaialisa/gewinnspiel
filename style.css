@@ -180,8 +180,8 @@ h1 {
 }
 @media (max-width: 768px) {
     html, body {
-        height: 100vh;
-        overflow: hidden;
+        max-height: 100vh;
+        overflow: auto;
     }
 }
 @media (min-width: 769px) {

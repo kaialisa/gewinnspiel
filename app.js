@@ -191,10 +191,9 @@ input.style.padding = '0';
 input.style.margin = '0';
 
 
-                // Allow pointer events normally:
                 input.style.pointerEvents = "auto";
 
-                // Wrap input in XHTML namespace
+        
                 const XHTML_NS = "http://www.w3.org/1999/xhtml";
                 const inputWrapper = document.createElementNS(XHTML_NS, "div");
                 inputWrapper.appendChild(input);
@@ -202,7 +201,6 @@ input.style.margin = '0';
                 foreignObject.appendChild(inputWrapper);
                 svgText.appendChild(foreignObject);
 
-                // Attach your existing event listeners here:
                 input.addEventListener('keydown', (e) => {
                     if (e.key === 'Backspace') {
                         if (e.target.selectionStart === 0) {
@@ -567,17 +565,42 @@ function updateActiveCluePopup() {
 
     const clue = crossword.clues[selectedClue.direction][selectedClue.number];
     const clueText = clue.text || 'Hinweis nicht gefunden';
+    popup.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    popup.style.opacity = 0;
+    popup.style.transform = 'scale(0.95)';
 
-    popup.innerHTML = `
-        <div style="font-weight: bold; margin-bottom: 10px;">
-            In welchem Bundesland werden diese Feste gefeiert?
-        </div>
-        <div>
-            ${selectedClue.number}. ${clueText}
-        </div>
-    `;
-    popup.style.display = 'block';
+    setTimeout(() => {
+        popup.innerHTML = `
+            <div style="
+                font-weight: bold; 
+                margin-bottom: 10px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+            ">
+                <span style="font-size: 10px; margin-right: 8px;">💡</span>
+                <span>In welchem Bundesland werden diese Feste gefeiert?</span>
+            </div>
+            <div style="
+                display: flex;  
+                justify-content: center;
+                align-items: center; 
+                font-size: 12px;
+            ">
+                ${selectedClue.number}. ${clueText}
+            </div>
+        `;
+
+        popup.style.display = 'block';
+
+        requestAnimationFrame(() => {
+            popup.style.opacity = 1;
+            popup.style.transform = 'scale(1)';
+        });
+    }, 150);
 }
+
+
 
 
 
@@ -587,4 +610,6 @@ document.addEventListener("DOMContentLoaded", function () {
     buildGrid();
     buildSidebar();
     loadProgress();
+    const popup = document.getElementById('active-clue-popup');
+    popup.style.display = 'none';
 });

@@ -1,90 +1,59 @@
 let selectedClue = { direction: null, number: null };
 function buildGrid() {
-    
     const puzzleWrapper = document.getElementById('puzzle');
-    puzzleWrapper.innerHTML = ''; // Clear
+    puzzleWrapper.innerHTML = '';
 
     const cellSize = 40;
     const svgNS = "http://www.w3.org/2000/svg";
 
-    // Create container for SVG + inputs (relative parent)
     const container = document.createElement('div');
-container.classList.add('puzzle-scaler');
-container.style.setProperty('--puzzle-aspect', `${crossword.height / crossword.width}`);
-
-// internal fixed pixel size for JS placement:
-container.style.width = (crossword.width * cellSize) + 'px';
-container.style.height = (crossword.height * cellSize) + 'px';
-container.style.position = 'relative';
-container.style.zIndex = '0';
-
+    container.classList.add('puzzle-scaler');
+    container.style.position = 'relative';
+    container.style.width = '100%';
+    container.style.aspectRatio = `${crossword.width} / ${crossword.height}`;
+    container.style.maxWidth = '90vw'; // Optional: limit size
+    container.style.margin = 'auto';
 
     const svg = document.createElementNS(svgNS, "svg");
-    svg.setAttribute("width", crossword.width * cellSize);
-    svg.setAttribute("height", crossword.height * cellSize);
+    svg.setAttribute("viewBox", `0 0 ${crossword.width * cellSize} ${crossword.height * cellSize}`);
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    svg.style.width = "100%";
+    svg.style.height = "100%";
 
-    // First: draw non-blocked rectangles
-for (let row = 0; row < crossword.height; row++) {
-    for (let col = 0; col < crossword.width; col++) {
-        const isBlocked = crossword.blocks.some(([r, c]) => r === row && c === col);
-        if (!isBlocked) {
+    // Draw cells
+    for (let row = 0; row < crossword.height; row++) {
+        for (let col = 0; col < crossword.width; col++) {
+            const isBlocked = crossword.blocks.some(([r, c]) => r === row && c === col);
             const rect = document.createElementNS(svgNS, "rect");
             rect.setAttribute("x", col * cellSize);
             rect.setAttribute("y", row * cellSize);
             rect.setAttribute("width", cellSize);
             rect.setAttribute("height", cellSize);
-            rect.setAttribute("fill", "white");
-            rect.setAttribute("stroke", "#333");
+            rect.setAttribute("fill", isBlocked ? "transparent" : "white");
+            rect.setAttribute("stroke", isBlocked ? "none" : "#333");
             rect.setAttribute("stroke-width", "1");
             svg.appendChild(rect);
-        }
-    }
-}
 
-// Second: draw transparent blocked rectangles
-for (let row = 0; row < crossword.height; row++) {
-    for (let col = 0; col < crossword.width; col++) {
-        const isBlocked = crossword.blocks.some(([r, c]) => r === row && c === col);
-        if (isBlocked) {
-            const rect = document.createElementNS(svgNS, "rect");
-            rect.setAttribute("x", col * cellSize);
-            rect.setAttribute("y", row * cellSize);
-            rect.setAttribute("width", cellSize);
-            rect.setAttribute("height", cellSize);
-            rect.setAttribute("fill", "transparent");
-            rect.setAttribute("stroke", "none");
-            svg.appendChild(rect);
-        }
+            const num = crossword.numbers[`${row},${col}`];
+            if (num && !isBlocked) {
+                if (num.down !== undefined) {
+                    const downText = document.createElementNS(svgNS, "text");
+                    downText.setAttribute("x", col * cellSize + 3);
+                    downText.setAttribute("y", row * cellSize + 10);
+                    downText.setAttribute("font-size", "12px");
+                    downText.textContent = `${num.down}↓`;
+                    svg.appendChild(downText);
+                }
+                if (num.across !== undefined) {
+                    const acrossText = document.createElementNS(svgNS, "text");
+                    acrossText.setAttribute("x", col * cellSize + 3);
+                    acrossText.setAttribute("y", (row + 1) * cellSize - 5);
+                    acrossText.setAttribute("font-size", "12px");
+                    acrossText.textContent = `${num.across}→`;
+                    svg.appendChild(acrossText);
+                }
+            }
 
-
-// Render clue numbers
-const num = crossword.numbers[`${row},${col}`];
-if (num && !isBlocked) {
-    
-    // Render down clue in top-left
-    if (num.down !== undefined) {
-        const downText = document.createElementNS(svgNS, "text");
-        downText.setAttribute("x", col * cellSize + 3);
-        downText.setAttribute("y", row * cellSize + 10);
-        downText.setAttribute("font-size", "12px");
-        downText.textContent = `${num.down}↓`;
-        svg.appendChild(downText);
-    }
-    
-    // Render across clue in bottom-left
-    if (num.across !== undefined) {
-        const acrossText = document.createElementNS(svgNS, "text");
-        acrossText.setAttribute("x", col * cellSize + 3);
-        acrossText.setAttribute("y", (row + 1) * cellSize - 5);  // bottom of cell
-        acrossText.setAttribute("font-size", "12px");
-        acrossText.textContent = `${num.across}→`; 
-        svg.appendChild(acrossText);
-    }
-}
-
-
-
-            // Render solution map letters (blue labels)
             for (const [letter, pos] of Object.entries(crossword.solutionMap)) {
                 if (pos[0] === row && pos[1] === col) {
                     const sol = document.createElementNS(svgNS, "text");
@@ -102,32 +71,12 @@ if (num && !isBlocked) {
     }
 
     container.appendChild(svg);
-createInputs(container, cellSize);  
-const outerWrapper = document.createElement('div');
-outerWrapper.appendChild(container);
-puzzleWrapper.appendChild(outerWrapper);
-buildSolutionRow();
-checkSolution();
-
-
+    createInputs(container, cellSize);
+    puzzleWrapper.appendChild(container);
+    buildSolutionRow();
+    checkSolution();
 }
 
-function autoScalePuzzle() {
-    const scaleContainer = document.getElementById('puzzle-scale-container');
-
-
-    const availableWidth = window.innerWidth - 40;
-    const puzzleWidth = crossword.width * 40;
-
-    const scaleFactor = Math.min(1, availableWidth / puzzleWidth);
-
-   scaleContainer.style.transform = `scale(${scaleFactor})`;
-    scaleContainer.style.transformOrigin = 'top center';
-}
-
-
-window.addEventListener('resize', autoScalePuzzle);
-autoScalePuzzle();
 
 
 function buildSidebar() {
@@ -179,38 +128,35 @@ sidebar.appendChild(clueElement);
 // Build input fields over the SVG grid
 function createInputs(container, cellSize) {
     const inputLayer = document.createElement('div');
-inputLayer.style.position = 'absolute';
-inputLayer.style.top = '0';
-inputLayer.style.left = '0';
-inputLayer.style.width = '100%';
-inputLayer.style.height = '100%';
-inputLayer.style.pointerEvents = 'none';
-inputLayer.style.zIndex = '1'; 
+    inputLayer.style.position = 'absolute';
+    inputLayer.style.top = '0';
+    inputLayer.style.left = '0';
+    inputLayer.style.width = '100%';
+    inputLayer.style.height = '100%';
+    inputLayer.style.zIndex = '1';
+    inputLayer.style.pointerEvents = 'none';
 
     for (let row = 0; row < crossword.height; row++) {
         for (let col = 0; col < crossword.width; col++) {
             const isBlocked = crossword.blocks.some(([r, c]) => r === row && c === col);
             if (!isBlocked) {
-                // Create wrapper div for proper positioning
-               const wrapper = document.createElement('div');
-wrapper.classList.add('cell-wrapper');
-wrapper.dataset.row = row;
-wrapper.dataset.col = col;
-wrapper.style.position = 'absolute';
-wrapper.style.left = `${col * cellSize}px`;
-wrapper.style.top = `${row * cellSize}px`;
-wrapper.style.width = `${cellSize}px`;
-wrapper.style.height = `${cellSize}px`;
-wrapper.style.background = 'transparent';
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('cell-wrapper');
+                wrapper.dataset.row = row;
+                wrapper.dataset.col = col;
+                wrapper.style.position = 'absolute';
 
+                // Calculate % based positioning
+                wrapper.style.left = `${(col / crossword.width) * 100}%`;
+                wrapper.style.top = `${(row / crossword.height) * 100}%`;
+                wrapper.style.width = `${(1 / crossword.width) * 100}%`;
+                wrapper.style.height = `${(1 / crossword.height) * 100}%`;
 
-                // Create input inside wrapper
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.maxLength = 1;
                 input.dataset.row = row;
                 input.dataset.col = col;
-
                 input.style.width = '100%';
                 input.style.height = '100%';
                 input.style.textAlign = 'center';
@@ -220,9 +166,9 @@ wrapper.style.background = 'transparent';
                 input.style.outline = 'none';
                 input.style.background = 'transparent';
                 input.style.pointerEvents = 'auto';
-input.style.zIndex = '2';  // <-- Inputs themselves above everything
-input.style.pointerEvents = 'auto';
-                // Attach event listeners BEFORE appending
+                input.style.zIndex = '2';
+
+                // Keep your event listeners exactly as before:
                 input.addEventListener('keydown', (e) => {
                     if (e.key === 'Backspace') {
                         if (e.target.selectionStart === 0) {
@@ -236,35 +182,27 @@ input.style.pointerEvents = 'auto';
                 });
 
                 input.addEventListener('click', (e) => {
-    const row = parseInt(e.target.dataset.row);
-    const col = parseInt(e.target.dataset.col);
-    const availableClues = getCluesAtCell(row, col);
-
-    if (availableClues.length === 0) return; // no clue here
-
-    // If same cell, toggle between across/down
-    if (selectedClue.row === row && selectedClue.col === col) {
-        // Toggle
-        const currentIndex = availableClues.findIndex(c =>
-            c.direction === selectedClue.direction && c.number === selectedClue.number
-        );
-        const nextIndex = (currentIndex + 1) % availableClues.length;
-        selectedClue = { ...availableClues[nextIndex], row, col };
-    } else {
-        // First click — pick across if available
-        const acrossFirst = availableClues.find(c => c.direction === 'across') || availableClues[0];
-        selectedClue = { ...acrossFirst, row, col };
-    }
-
-    highlightClueCells();
-    updateActiveCluePopup();
-});
-
+                    const row = parseInt(e.target.dataset.row);
+                    const col = parseInt(e.target.dataset.col);
+                    const availableClues = getCluesAtCell(row, col);
+                    if (availableClues.length === 0) return;
+                    if (selectedClue.row === row && selectedClue.col === col) {
+                        const currentIndex = availableClues.findIndex(c =>
+                            c.direction === selectedClue.direction && c.number === selectedClue.number
+                        );
+                        const nextIndex = (currentIndex + 1) % availableClues.length;
+                        selectedClue = { ...availableClues[nextIndex], row, col };
+                    } else {
+                        const acrossFirst = availableClues.find(c => c.direction === 'across') || availableClues[0];
+                        selectedClue = { ...acrossFirst, row, col };
+                    }
+                    highlightClueCells();
+                    updateActiveCluePopup();
+                });
 
                 input.addEventListener('input', (e) => {
                     const val = e.target.value.toUpperCase();
                     e.target.value = val;
-
                     if (val.length === 1) {
                         moveToNextInput(e.target);
                     }
@@ -272,16 +210,15 @@ input.style.pointerEvents = 'auto';
                     saveProgress();
                 });
 
-                // Append input into wrapper
                 wrapper.appendChild(input);
                 inputLayer.appendChild(wrapper);
             }
         }
     }
-container.insertBefore(inputLayer, container.firstChild);
 
-
+    container.appendChild(inputLayer);
 }
+
 
 
 // Auto-advance logic
@@ -386,42 +323,42 @@ function buildSolutionRow() {
     const solutionContainer = document.getElementById('solution-container');
     solutionContainer.innerHTML = '';
 
-    // Create the outer flex wrapper
+    const boxSize = 40;  // <-- replace later with dynamic size if desired
+
     const wrapper = document.createElement('div');
     wrapper.style.display = 'flex';
     wrapper.style.alignItems = 'center';
     wrapper.style.justifyContent = 'center';
-    wrapper.style.marginBottom = '20px';  // space below entire row
+    wrapper.style.margin = '20px auto';
+    wrapper.style.flexWrap = 'wrap';
+    wrapper.style.gap = '5px';
 
-    // Create the label
     const label = document.createElement('div');
     label.innerText = 'Lösungswort:';
-    label.style.marginRight = '10px';
-    label.style.fontSize = '18px';
+    label.style.fontSize = `${boxSize * 0.45}px`;
     label.style.fontWeight = 'bold';
+    label.style.marginRight = '10px';
     wrapper.appendChild(label);
 
-    // Now add the solution boxes
     const sortedLetters = Object.keys(crossword.solutionMap).sort();
 
     sortedLetters.forEach(letter => {
         const box = document.createElement('div');
         box.style.position = 'relative';
-        box.style.width = '40px';
-        box.style.height = '40px';
+        box.style.width = `${boxSize}px`;
+        box.style.height = `${boxSize}px`;
         box.style.border = '1px solid #333';
         box.style.background = 'white';
         box.style.display = 'flex';
         box.style.alignItems = 'center';
         box.style.justifyContent = 'center';
-        box.style.marginRight = '5px';
 
         const hint = document.createElement('div');
         hint.innerText = letter;
         hint.style.position = 'absolute';
         hint.style.bottom = '2px';
         hint.style.right = '2px';
-        hint.style.fontSize = '16px';
+        hint.style.fontSize = `${boxSize * 0.4}px`;
         hint.style.color = '#003399';
         hint.style.fontWeight = '900';
         box.appendChild(hint);
@@ -432,7 +369,7 @@ function buildSolutionRow() {
         input.style.position = 'absolute';
         input.style.width = '100%';
         input.style.height = '100%';
-        input.style.fontSize = '18px';
+        input.style.fontSize = `${boxSize * 0.45}px`;
         input.style.textAlign = 'center';
         input.style.fontWeight = 'bold';
         input.style.border = 'none';
@@ -443,9 +380,9 @@ function buildSolutionRow() {
         wrapper.appendChild(box);
     });
 
-    // Finally add everything into solution container
     solutionContainer.appendChild(wrapper);
 }
+
 
 
 

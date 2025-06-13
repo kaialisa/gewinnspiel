@@ -1,3 +1,4 @@
+const cellSize = 40;
 let selectedClue = { direction: null, number: null };
 function buildGrid() {
     const puzzleWrapper = document.getElementById('puzzle');
@@ -11,16 +12,28 @@ function buildGrid() {
     container.style.position = 'relative';
     container.style.width = '100%';
     container.style.aspectRatio = `${crossword.width} / ${crossword.height}`;
-    container.style.maxWidth = '90vw'; // Optional: limit size
+    container.style.maxWidth = '90vw';
     container.style.margin = 'auto';
 
-    const svg = document.createElementNS(svgNS, "svg");
-    svg.setAttribute("viewBox", `0 0 ${crossword.width * cellSize} ${crossword.height * cellSize}`);
-    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-    svg.style.width = "100%";
-    svg.style.height = "100%";
+    // Create two SVG layers
+    const svgGrid = document.createElementNS(svgNS, "svg");
+    const svgText = document.createElementNS(svgNS, "svg");
 
-    // Draw cells
+    const viewBox = `0 0 ${crossword.width * cellSize} ${crossword.height * cellSize}`;
+    [svgGrid, svgText].forEach(svg => {
+        svg.setAttribute("viewBox", viewBox);
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        svg.style.position = 'absolute';
+        svg.style.top = '0';
+        svg.style.left = '0';
+        svg.style.width = '100%';
+        svg.style.height = '100%';
+    });
+
+    svgGrid.style.zIndex = '0';
+    svgText.style.zIndex = '1';  // IMPORTANT: text layer above inputs
+
+    // Draw rectangles
     for (let row = 0; row < crossword.height; row++) {
         for (let col = 0; col < crossword.width; col++) {
             const isBlocked = crossword.blocks.some(([r, c]) => r === row && c === col);
@@ -32,50 +45,72 @@ function buildGrid() {
             rect.setAttribute("fill", isBlocked ? "transparent" : "white");
             rect.setAttribute("stroke", isBlocked ? "none" : "#333");
             rect.setAttribute("stroke-width", "1");
-            svg.appendChild(rect);
+            svgGrid.appendChild(rect);
+        }
+    }
 
-            const num = crossword.numbers[`${row},${col}`];
-            if (num && !isBlocked) {
-                if (num.down !== undefined) {
-                    const downText = document.createElementNS(svgNS, "text");
-                    downText.setAttribute("x", col * cellSize + 3);
-                    downText.setAttribute("y", row * cellSize + 10);
-                    downText.setAttribute("font-size", "12px");
-                    downText.textContent = `${num.down}↓`;
-                    svg.appendChild(downText);
-                }
-                if (num.across !== undefined) {
-                    const acrossText = document.createElementNS(svgNS, "text");
-                    acrossText.setAttribute("x", col * cellSize + 3);
-                    acrossText.setAttribute("y", (row + 1) * cellSize - 5);
-                    acrossText.setAttribute("font-size", "12px");
-                    acrossText.textContent = `${num.across}→`;
-                    svg.appendChild(acrossText);
-                }
-            }
-
-            for (const [letter, pos] of Object.entries(crossword.solutionMap)) {
-                if (pos[0] === row && pos[1] === col) {
-                    const sol = document.createElementNS(svgNS, "text");
-                    sol.setAttribute("x", (col + 1) * cellSize - 6);
-                    sol.setAttribute("y", (row + 1) * cellSize - 5);
-                    sol.setAttribute("font-size", "14px");
-                    sol.setAttribute("fill", "#003399");
-                    sol.setAttribute("font-weight", "900");
-                    sol.setAttribute("text-anchor", "end");
-                    sol.textContent = letter;
-                    svg.appendChild(sol);
+    // Draw clue numbers
+    for (let row = 0; row < crossword.height; row++) {
+        for (let col = 0; col < crossword.width; col++) {
+            const isBlocked = crossword.blocks.some(([r, c]) => r === row && c === col);
+            if (!isBlocked) {
+                const num = crossword.numbers[`${row},${col}`];
+                if (num) {
+                    if ('down' in num) {
+                        const downText = document.createElementNS(svgNS, "text");
+                        downText.setAttribute("x", col * cellSize + 3);
+                        downText.setAttribute("y", row * cellSize + 10);
+                        downText.setAttribute("font-size", "12px");
+                        downText.textContent = `${num.down}↓`;
+                        svgText.appendChild(downText);
+                    }
+                    if ('across' in num) {
+                        const acrossText = document.createElementNS(svgNS, "text");
+                        acrossText.setAttribute("x", col * cellSize + 3);
+                        acrossText.setAttribute("y", (row + 1) * cellSize - 5);
+                        acrossText.setAttribute("font-size", "12px");
+                        acrossText.textContent = `${num.across}→`;
+                        svgText.appendChild(acrossText);
+                    }
                 }
             }
         }
     }
 
-    container.appendChild(svg);
-    createInputs(container, cellSize);
+    // Draw solution letters
+    for (const [letter, pos] of Object.entries(crossword.solutionMap)) {
+        const [row, col] = pos;
+        const sol = document.createElementNS(svgNS, "text");
+        sol.setAttribute("x", col * cellSize + cellSize * 0.85);
+        sol.setAttribute("y", row * cellSize + cellSize * 0.85);
+        sol.setAttribute("font-size", "24px");
+        sol.setAttribute("fill", "#00339980");
+        sol.setAttribute("font-weight", "900");
+        sol.setAttribute("text-anchor", "end");
+        sol.textContent = letter;
+        svgText.appendChild(sol);
+    }
+
+    // Create highlight layer
+const highlightLayer = document.createElementNS(svgNS, "g");
+highlightLayer.setAttribute("id", "highlightLayer");
+svgGrid.appendChild(highlightLayer);
+
+
+    // Append in correct stacking order
+    container.appendChild(svgGrid);
+    createInputs(svgText, cellSize);
+    container.appendChild(svgText);    
     puzzleWrapper.appendChild(container);
-    buildSolutionRow();
+
+    const renderedPuzzleWidth = container.getBoundingClientRect().width;
+    const actualCellSize = renderedPuzzleWidth / crossword.width
+
+    buildSolutionRow(cellSize);
     checkSolution();
 }
+
+
 
 
 
@@ -126,49 +161,48 @@ sidebar.appendChild(clueElement);
 
 
 // Build input fields over the SVG grid
-function createInputs(container, cellSize) {
-    const inputLayer = document.createElement('div');
-    inputLayer.style.position = 'absolute';
-    inputLayer.style.top = '0';
-    inputLayer.style.left = '0';
-    inputLayer.style.width = '100%';
-    inputLayer.style.height = '100%';
-    inputLayer.style.zIndex = '1';
-    inputLayer.style.pointerEvents = 'none';
-
+function createInputs(svgText, cellSize) {
     for (let row = 0; row < crossword.height; row++) {
         for (let col = 0; col < crossword.width; col++) {
             const isBlocked = crossword.blocks.some(([r, c]) => r === row && c === col);
             if (!isBlocked) {
-                const wrapper = document.createElement('div');
-                wrapper.classList.add('cell-wrapper');
-                wrapper.dataset.row = row;
-                wrapper.dataset.col = col;
-                wrapper.style.position = 'absolute';
+                const foreignObject = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+                foreignObject.setAttribute("x", col * cellSize);
+                foreignObject.setAttribute("y", row * cellSize);
+                foreignObject.setAttribute("width", cellSize);
+                foreignObject.setAttribute("height", cellSize);
 
-                // Calculate % based positioning
-                wrapper.style.left = `${(col / crossword.width) * 100}%`;
-                wrapper.style.top = `${(row / crossword.height) * 100}%`;
-                wrapper.style.width = `${(1 / crossword.width) * 100}%`;
-                wrapper.style.height = `${(1 / crossword.height) * 100}%`;
-
-                const input = document.createElement('input');
-                input.type = 'text';
+                const input = document.createElement("input");
+                input.type = "text";
                 input.maxLength = 1;
                 input.dataset.row = row;
                 input.dataset.col = col;
                 input.style.width = '100%';
-                input.style.height = '100%';
-                input.style.textAlign = 'center';
-                input.style.fontSize = '18px';
-                input.style.fontWeight = 'bold';
-                input.style.border = 'none';
-                input.style.outline = 'none';
-                input.style.background = 'transparent';
-                input.style.pointerEvents = 'auto';
-                input.style.zIndex = '2';
+input.style.height = '100%';
+input.style.fontSize = (cellSize * 0.8) + 'px';
+input.style.fontWeight = '500';
+input.style.textAlign = 'center';
+input.style.lineHeight = '1';
+input.style.verticalAlign = 'middle';
+input.style.border = 'none';
+input.style.outline = 'none';
+input.style.background = 'transparent';
+input.style.padding = '0';
+input.style.margin = '0';
 
-                // Keep your event listeners exactly as before:
+
+                // Allow pointer events normally:
+                input.style.pointerEvents = "auto";
+
+                // Wrap input in XHTML namespace
+                const XHTML_NS = "http://www.w3.org/1999/xhtml";
+                const inputWrapper = document.createElementNS(XHTML_NS, "div");
+                inputWrapper.appendChild(input);
+
+                foreignObject.appendChild(inputWrapper);
+                svgText.appendChild(foreignObject);
+
+                // Attach your existing event listeners here:
                 input.addEventListener('keydown', (e) => {
                     if (e.key === 'Backspace') {
                         if (e.target.selectionStart === 0) {
@@ -209,15 +243,11 @@ function createInputs(container, cellSize) {
                     checkSolution();
                     saveProgress();
                 });
-
-                wrapper.appendChild(input);
-                inputLayer.appendChild(wrapper);
             }
         }
     }
-
-    container.appendChild(inputLayer);
 }
+
 
 
 
@@ -319,34 +349,40 @@ function moveToPreviousInput(currentInput) {
 
 
 // Build solution row based on solutionMap letters
-function buildSolutionRow() {
+function buildSolutionRow(cellSize) {
     const solutionContainer = document.getElementById('solution-container');
     solutionContainer.innerHTML = '';
 
-    const boxSize = 40;  // <-- replace later with dynamic size if desired
+    const boxSize = cellSize;
 
-    const wrapper = document.createElement('div');
-    wrapper.style.display = 'flex';
-    wrapper.style.alignItems = 'center';
-    wrapper.style.justifyContent = 'center';
-    wrapper.style.margin = '20px auto';
-    wrapper.style.flexWrap = 'wrap';
-    wrapper.style.gap = '5px';
-
+    // Create label container
     const label = document.createElement('div');
     label.innerText = 'Lösungswort:';
     label.style.fontSize = `${boxSize * 0.45}px`;
     label.style.fontWeight = 'bold';
-    label.style.marginRight = '10px';
-    wrapper.appendChild(label);
+    label.style.textAlign = 'center';
+    label.style.marginBottom = '10px';
+    solutionContainer.appendChild(label);
+
+    // Create wrapper for the boxes
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'flex';
+    wrapper.style.alignItems = 'center';
+    wrapper.style.justifyContent = 'center';
+    wrapper.style.margin = '0 auto';
+    wrapper.style.flexWrap = 'wrap';
+    wrapper.style.gap = '5px';
+    wrapper.style.maxWidth = '90vw';
+    wrapper.style.aspectRatio = `${crossword.width} / 1`;
+    wrapper.style.width = '100%';
 
     const sortedLetters = Object.keys(crossword.solutionMap).sort();
 
     sortedLetters.forEach(letter => {
         const box = document.createElement('div');
         box.style.position = 'relative';
-        box.style.width = `${boxSize}px`;
-        box.style.height = `${boxSize}px`;
+        box.style.width = `3vh`;
+        box.style.height = `3vh`;
         box.style.border = '1px solid #333';
         box.style.background = 'white';
         box.style.display = 'flex';
@@ -359,7 +395,7 @@ function buildSolutionRow() {
         hint.style.bottom = '2px';
         hint.style.right = '2px';
         hint.style.fontSize = `${boxSize * 0.4}px`;
-        hint.style.color = '#003399';
+        hint.style.color = '#00339980';
         hint.style.fontWeight = '900';
         box.appendChild(hint);
 
@@ -371,10 +407,12 @@ function buildSolutionRow() {
         input.style.height = '100%';
         input.style.fontSize = `${boxSize * 0.45}px`;
         input.style.textAlign = 'center';
-        input.style.fontWeight = 'bold';
+        input.style.fontWeight = '500';
         input.style.border = 'none';
         input.style.outline = 'none';
         input.style.background = 'transparent';
+        input.style.padding = '0';
+        input.style.margin = '0';
         box.appendChild(input);
 
         wrapper.appendChild(box);
@@ -382,6 +420,8 @@ function buildSolutionRow() {
 
     solutionContainer.appendChild(wrapper);
 }
+
+
 
 
 
@@ -483,14 +523,26 @@ function getPreviousClue(activeClue) {
 
 
 function highlightClueCells() {
-    document.querySelectorAll('#puzzle .cell-wrapper').forEach(wrapper => wrapper.classList.remove('highlighted'));
+    const highlightLayer = document.getElementById("highlightLayer");
+    // Clear previous highlights
+    while (highlightLayer.firstChild) {
+        highlightLayer.removeChild(highlightLayer.firstChild);
+    }
 
     if (!selectedClue.direction || !selectedClue.number) return;
 
     const clue = crossword.clues[selectedClue.direction][selectedClue.number];
     clue.cells.forEach(([r, c]) => {
-        const wrapper = document.querySelector(`#puzzle .cell-wrapper[data-row="${r}"][data-col="${c}"]`);
-        if (wrapper) wrapper.classList.add('highlighted');
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", c * cellSize);
+        rect.setAttribute("y", r * cellSize);
+        rect.setAttribute("width", cellSize);
+        rect.setAttribute("height", cellSize);
+        rect.setAttribute("fill", "#cce5ff");
+rect.setAttribute("stroke", "#333");  // match grid stroke
+rect.setAttribute("stroke-width", "1");
+
+        highlightLayer.appendChild(rect);
     });
 
     // Update sidebar active state

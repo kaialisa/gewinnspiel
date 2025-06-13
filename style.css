@@ -58,8 +58,9 @@ h1 {
 }
 
 .solution-box {
-    width: clamp(30px, 10vw, 40px);
-    height: clamp(30px, 10vw, 40px);
+    width: clamp(40px, 5vw, 40px);
+height: clamp(40px, 5vw, 40px);
+
     position: relative;
     border: 1px solid #333;
     background: white;
@@ -123,7 +124,7 @@ h1 {
 #puzzle input {
     width: 100%;
     height: 100%;
-    font-size: 30px;
+    font-size: 40px;
     font-weight: 300;
     font-family: 'Quicksand', sans-serif;
     text-align: center;
@@ -180,6 +181,9 @@ h1 {
 }
 
 
+#mobile-instructions {
+      
+    }
 
 
 @media (min-width: 769px) {

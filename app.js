@@ -106,7 +106,7 @@ svgGrid.appendChild(highlightLayer);
     const renderedPuzzleWidth = container.getBoundingClientRect().width;
     const actualCellSize = renderedPuzzleWidth / crossword.width
 
-    buildSolutionRow(cellSize);
+    buildSolutionRow(actualCellSize);
     checkSolution();
 }
 
@@ -351,15 +351,13 @@ function buildSolutionRow(cellSize) {
     const solutionContainer = document.getElementById('solution-container');
     solutionContainer.innerHTML = '';
 
-    const boxSize = cellSize;
-
     // Create label container
     const label = document.createElement('div');
     label.innerText = 'Lösungswort:';
-    label.style.fontSize = `${boxSize * 0.45}px`;
+    label.style.fontSize = `${cellSize * 0.45}px`;
     label.style.fontWeight = 'bold';
     label.style.textAlign = 'center';
-    label.style.marginBottom = '10px';
+    label.style.marginBottom = `${cellSize * 0.25}px`;
     solutionContainer.appendChild(label);
 
     // Create wrapper for the boxes
@@ -369,7 +367,7 @@ function buildSolutionRow(cellSize) {
     wrapper.style.justifyContent = 'center';
     wrapper.style.margin = '0 auto';
     wrapper.style.flexWrap = 'wrap';
-    wrapper.style.gap = '5px';
+    wrapper.style.gap = `${cellSize * 0.125}px`; // gap scales too
     wrapper.style.maxWidth = '90vw';
     wrapper.style.aspectRatio = `${crossword.width} / 1`;
     wrapper.style.width = '100%';
@@ -379,8 +377,8 @@ function buildSolutionRow(cellSize) {
     sortedLetters.forEach(letter => {
         const box = document.createElement('div');
         box.style.position = 'relative';
-        box.style.width = `3vh`;
-        box.style.height = `3vh`;
+        box.style.width = `${cellSize}px`;
+        box.style.height = `${cellSize}px`;
         box.style.border = '1px solid #333';
         box.style.background = 'white';
         box.style.display = 'flex';
@@ -390,9 +388,9 @@ function buildSolutionRow(cellSize) {
         const hint = document.createElement('div');
         hint.innerText = letter;
         hint.style.position = 'absolute';
-        hint.style.bottom = '2px';
-        hint.style.right = '2px';
-        hint.style.fontSize = `${boxSize * 0.4}px`;
+        hint.style.bottom = `${cellSize * 0.05}px`;
+        hint.style.right = `${cellSize * 0.05}px`;
+        hint.style.fontSize = `${cellSize * 0.4}px`;
         hint.style.color = '#00339980';
         hint.style.fontWeight = '900';
         box.appendChild(hint);
@@ -403,7 +401,7 @@ function buildSolutionRow(cellSize) {
         input.style.position = 'absolute';
         input.style.width = '100%';
         input.style.height = '100%';
-        input.style.fontSize = `${boxSize * 0.45}px`;
+        input.style.fontSize = `${cellSize * 0.45}px`;
         input.style.textAlign = 'center';
         input.style.fontWeight = '500';
         input.style.border = 'none';

@@ -600,7 +600,7 @@ function updateActiveCluePopup() {
                 justify-content: center;
             ">
                 <span style="font-size: 10px; margin-right: 8px;">💡</span>
-                <span>In welchem Bundesland werden diese Feste gefeiert?</span>
+                <span><strong>In welchem Bundesland werden diese Feste gefeiert?</strong></span>
             </div>
             <div style="
                 display: flex;  

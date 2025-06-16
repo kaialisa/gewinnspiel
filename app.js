@@ -158,6 +158,28 @@ sidebar.appendChild(clueElement);
     });
 }
 
+function sanitizeInput(value) {
+    // Normalize German characters
+    value = value
+        .replace(/[ä]/g, "Ä")
+        .replace(/[ö]/g, "Ö")
+        .replace(/[ü]/g, "Ü")
+        .replace(/[ß]/g, "ẞ");
+
+    value = value.toUpperCase();
+
+    const allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜẞ";
+
+    // Only allow allowed characters
+    let result = "";
+    for (let char of value) {
+        if (allowed.includes(char)) {
+            result += char;
+        }
+    }
+
+    return result;
+}
 
 
 // Build input fields over the SVG grid
@@ -232,15 +254,16 @@ input.style.margin = '0';
                     updateActiveCluePopup();
                 });
 
-                input.addEventListener('input', (e) => {
-                    const val = e.target.value.toUpperCase();
-                    e.target.value = val;
-                    if (val.length === 1) {
-                        moveToNextInput(e.target);
-                    }
-                    checkSolution();
-                    saveProgress();
-                });
+            input.addEventListener('input', (e) => {
+    const sanitized = sanitizeInput(e.target.value);
+    e.target.value = sanitized;
+    if (sanitized.length === 1) {
+        moveToNextInput(e.target);
+    }
+    checkSolution();
+    saveProgress();
+});
+
             }
         }
     }

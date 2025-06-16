@@ -27,7 +27,7 @@ h1 {
 #puzzle-wrapper {
     width: 100%;
     max-width: 900px;
-    margin: auto;
+    margin-right: auto;
     position: relative;
 }
 
@@ -90,6 +90,7 @@ height: clamp(40px, 5vw, 40px);
     overflow-y: auto;
     position: sticky;
     top: 100px;
+      margin-left: auto;
 }
 
 .clue-item {
@@ -165,10 +166,8 @@ height: clamp(40px, 5vw, 40px);
     left: 0;
 }
 
-@media (max-width: 768px) {
-    #mobile-clue-list {
-        margin-top: -650px;  /* Adjust this value */
-    }
+#mobile-instructions {
+    margin: 0 20px;
 }
 
 #active-clue-popup {

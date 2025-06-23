@@ -5,16 +5,16 @@ body {
     font-size: 12px;
 }
 
-
 h1 {
     text-align: center;
-    color: #023E7C;
+    color: #B66752;
     font-weight: 500;
     font-size: 32px;
     letter-spacing: 0.5px;
 }
+
 strong {
-    color: #023E7C;
+    color: #B66752;
 }
 
 #submission-link {
@@ -22,59 +22,49 @@ strong {
     text-align: center;
 }
 
-#submission-link {
-  margin: 40px auto;
-  text-align: center;
-
-}
-
 #page-wrapper {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
 }
-
-
 
 #submission-link a {
-  display: inline-block;
-  padding: 16px 48px 16px 32px; /* extra right padding for arrow space */
-  background: linear-gradient(135deg, #023E7C 0%, #0450A0 100%);
-  color: white;
-  border-radius: 12px;
-  text-decoration: none;
-  font-weight: 300;
-  font-size: 18px;
-  font-family: 'Quicksand', sans-serif;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+    display: inline-block;
+    padding: 16px 48px 16px 32px;
+    background: linear-gradient(135deg, #B66752 0%, #9b4f3c 100%);
+    color: white;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 300;
+    font-size: 18px;
+    font-family: 'Quicksand', sans-serif;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 #submission-link a::after {
-  content: '→';
-  position: absolute;
-  right: 24px;
-  top: 50%;
-  transform: translateY(-50%) translateX(10px);
-  opacity: 0;
-  transition: all 0.3s ease;
-  font-size: 20px;
+    content: '→';
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%) translateX(10px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    font-size: 20px;
 }
 
 #submission-link a:hover {
-  transform: translateX(5px); /* slight move to the right */
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-  background: linear-gradient(135deg, #023E7C 0%, #0475D1 100%);
+    transform: translateX(5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    background: linear-gradient(135deg, #B66752 0%, #c77b67 100%);
 }
 
 #submission-link a:hover::after {
-  transform: translateY(-50%) translateX(0);
-  opacity: 1;
+    transform: translateY(-50%) translateX(0);
+    opacity: 1;
 }
-
-
 
 #main-layout {
     display: flex;
@@ -91,7 +81,6 @@ strong {
     margin-right: auto;
     position: relative;
 }
-
 
 #puzzle-background {
     position: absolute;
@@ -120,8 +109,7 @@ strong {
 
 .solution-box {
     width: clamp(40px, 5vw, 40px);
-height: clamp(40px, 5vw, 40px);
-
+    height: clamp(40px, 5vw, 40px);
     position: relative;
     border: 1px solid #333;
     background: white;
@@ -130,13 +118,12 @@ height: clamp(40px, 5vw, 40px);
     justify-content: center;
 }
 
-
 .solution-label {
     position: absolute;
     bottom: 2px;
     right: 2px;
     font-size: 16px;
-    color: #003399;
+    color: #B66752;
     font-weight: 600;
 }
 
@@ -151,7 +138,7 @@ height: clamp(40px, 5vw, 40px);
     overflow-y: auto;
     position: sticky;
     top: 100px;
-      margin-left: auto;
+    margin-left: auto;
 }
 
 .clue-item {
@@ -162,15 +149,13 @@ height: clamp(40px, 5vw, 40px);
 }
 
 .clue-item:hover {
-    background-color: #cddff6;
+    background-color: rgba(182, 103, 82, 0.15);
 }
 
-/* Active selected clue */
 .clue-item.active {
-    background-color: #a5c8f0;
+    background-color: rgba(182, 103, 82, 0.25);
 }
 
-/* Mobile rules */
 @media (max-width: 768px) {
     #main-layout {
         flex-direction: column;
@@ -196,9 +181,8 @@ height: clamp(40px, 5vw, 40px);
     background: transparent;
 }
 
-/* Highlight for active cells */
 .highlighted {
-    box-shadow: inset 0 0 0 9999px rgba(0, 100, 255, 0.2);
+    box-shadow: inset 0 0 0 9999px rgba(46, 67, 92, 0.2);
 }
 
 .cell-wrapper {
@@ -207,7 +191,6 @@ height: clamp(40px, 5vw, 40px);
     box-sizing: border-box;
 }
 
-/* Scaling behavior */
 .puzzle-scaler {
     width: 100%;
     max-width: 90vw;
@@ -216,8 +199,6 @@ height: clamp(40px, 5vw, 40px);
     margin: auto;
 }
 
-
-/* SVG and inputs inside scaling box */
 .puzzle-scaler svg,
 .puzzle-scaler .input-layer {
     position: absolute;
@@ -241,23 +222,18 @@ height: clamp(40px, 5vw, 40px);
     border-radius: 10px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-
 }
 
 #active-clue-popup strong {
-    color: #023E7C;
+    color: #B66752;
 }
-
-
-
-
-#mobile-instructions {
-      
-    }
-
 
 @media (min-width: 769px) {
     #mobile-instructions {
+        display: none !important;
+    }
+
+    #active-clue-popup {
         display: none !important;
     }
 }
@@ -267,12 +243,4 @@ html, body {
     overflow-y: auto;
     margin: 0;
     padding: 0;
-}
-
-
-
-@media (min-width: 769px) {
-    #active-clue-popup {
-        display: none !important;
-    }
 }

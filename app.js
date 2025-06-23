@@ -117,12 +117,6 @@ svgGrid.appendChild(highlightLayer);
 function buildSidebar() {
     const sidebar = document.getElementById('clue-sidebar');
     sidebar.innerHTML = '';
-// Add static question at top
-    const header = document.createElement('div');
-    header.innerText = 'In welchem Bundesland werden diese Feste gefeiert?';
-    header.style.fontWeight = 'bold';
-    header.style.marginBottom = '20px';
-    sidebar.appendChild(header);
     const clueOrder = getClueOrder();
 
     clueOrder.forEach(clueRef => {
@@ -591,26 +585,17 @@ function updateActiveCluePopup() {
     popup.style.transform = 'scale(0.95)';
 
     setTimeout(() => {
-        popup.innerHTML = `
-            <div style="
-                font-weight: bold; 
-                margin-bottom: 10px; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center;
-            ">
-                <span style="font-size: 10px; margin-right: 8px;">💡</span>
-                <span><strong>In welchem Bundesland werden diese Feste gefeiert?</strong></span>
-            </div>
-            <div style="
-                display: flex;  
-                justify-content: center;
-                align-items: center; 
-                font-size: 12px;
-            ">
-                ${selectedClue.number}. ${clueText}
-            </div>
-        `;
+popup.innerHTML = `
+    <div style="
+        display: flex;  
+        justify-content: center;
+        align-items: center; 
+        font-size: 12px;
+    ">
+        ${selectedClue.number}. ${clueText}
+    </div>
+`;
+
 
         popup.style.display = 'block';
 
